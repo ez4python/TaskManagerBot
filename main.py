@@ -9,13 +9,14 @@ from aiogram.filters import CommandStart
 from aiogram.filters.command import BotCommand
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.utils.markdown import hbold
 from sqlalchemy import insert, select
 from dotenv import load_dotenv
 from reply import *
 from db import User, session
+from utils import task_save, get_user_tasks
 
 load_dotenv()
 # ADMIN_USER_ID = 1998050207
@@ -27,7 +28,6 @@ dp = Dispatcher(storage=MemoryStorage())
 # Statement Class
 class UserStates(StatesGroup):
     main_menu = State()
-    new_task = State()
     my_lists = State()
 
 
@@ -70,14 +70,59 @@ async def command_start_handler(msg: Message, state: FSMContext) -> None:
 @dp.message(UserStates.main_menu)
 async def main_menu_handler(msg: Message, state: FSMContext):
     if msg.text == "New 📝":
-        await state.set_state(UserStates.new_task)
+        await msg.answer(text="Title:")
+        await state.set_state(TaskStates.title)
     elif msg.text == "My tasks 📋":
         await state.set_state(UserStates.my_lists)
 
 
-@dp.message(UserStates.new_task)
-async def new_task_handler(msg: Message, state: FSMContext):
-    pass
+@dp.message(UserStates.my_lists)
+async def display_tasks_handler(msg: Message, state: FSMContext):
+    tasks = get_user_tasks(msg.from_user.id)
+    if tasks:
+        for task in tasks:
+            text = f"Title: {task.title}\nDescription: {task.description}"
+            await msg.answer(text=text, reply_markup=task_list_buttons())
+    else:
+        await msg.answer(text="You have no tasks 🙄", reply_markup=main_menu_buttons())
+        await state.set_state(UserStates.main_menu)
+
+
+@dp.message(TaskStates.title)
+async def title_task_handler(msg: Message, state: FSMContext):
+    data = await state.get_data()
+    data.update({
+        "title": msg.text
+    })
+    await state.set_data(data)
+    await msg.answer(text="Description:")
+    await state.set_state(TaskStates.description)
+
+
+@dp.message(TaskStates.description)
+async def description_handler(msg: Message, state: FSMContext):
+    data = await state.get_data()
+    title = data.get("title")
+    data.update({
+        "description": msg.text
+    })
+    await state.set_data(data)
+    await state.set_state(TaskStates.request_to_save)
+    text = f"TITLE : {title}\nDESCRIPTION : {msg.text}"
+    await msg.answer(text, reply_markup=request_button())
+    await state.set_state(TaskStates.request_to_save)
+
+
+@dp.callback_query(TaskStates.request_to_save)
+async def request_handler(call: CallbackQuery, state: FSMContext):
+    if call.data == 'save':
+        data = await state.get_data()
+        task_save(data.get("title"), data.get("description"), call.from_user.id)
+        await call.message.answer("Successfully saved ✅", reply_markup=main_menu_buttons())
+        await state.set_state(UserStates.main_menu)
+    elif call.data == "edit":
+        await call.message.answer("Title : ")
+        await state.set_state(TaskStates.title)
 
 
 async def main() -> None:

@@ -22,7 +22,7 @@ class Tasks(Base):
     id: Mapped[int] = mapped_column(__type_pos=BIGINT, primary_key=True, autoincrement=True)
     title: Mapped[str] = mapped_column(nullable=True, default=None)
     description: Mapped[str] = mapped_column(__type_pos=TEXT)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.telegram_id"))
 
 
 Base.metadata.create_all(engine)

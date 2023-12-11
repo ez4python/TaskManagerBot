@@ -1,4 +1,4 @@
-from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
+from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 
 
 def contact_share_button():
@@ -25,3 +25,12 @@ def task_list_buttons():
         [btn2]
     ]
     return ReplyKeyboardMarkup(keyboard=design, resize_keyboard=True)
+
+
+def request_button():
+    save = InlineKeyboardButton(text="SAVE 🟢", callback_data="save")
+    edit = InlineKeyboardButton(text="EDIT 📝", callback_data="edit")
+    design = [
+        [save, edit]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=design)
