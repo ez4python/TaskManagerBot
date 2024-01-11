@@ -8,14 +8,14 @@ from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
 from aiogram.filters.command import BotCommand
 from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import Message, CallbackQuery
-from aiogram.fsm.state import State, StatesGroup
-from aiogram.utils.markdown import hbold
-from sqlalchemy import insert, select
 from dotenv import load_dotenv
-from reply import *
+from sqlalchemy import insert, select
+
 from db import User, session
+from reply import *
 from utils import task_save, get_user_tasks
 
 load_dotenv()

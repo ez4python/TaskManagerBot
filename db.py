@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, BIGINT, TEXT, ForeignKey, VARCHAR
 from sqlalchemy.orm import declarative_base, Mapped, Session, mapped_column
 
-engine = create_engine("postgresql+psycopg2://postgres:1@localhost:5432/task_manager_db")
+engine = create_engine("postgresql+psycopg2://postgres:1@localhost:5431/task_manager_db")
 
 Base = declarative_base()
 session = Session(bind=engine)
